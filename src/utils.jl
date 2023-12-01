@@ -9,7 +9,7 @@ using ScikitLearn
 
 # ------- helper functions to load data -----------
 function get_abalone_data()
-    df = CSV.read("data/abalone/abalone_original.csv", DataFrame)
+    df = CSV.read("../data/abalone/abalone_original.csv", DataFrame)
     selected_columns = setdiff(names(df), ["rings", "sex"])
 
     X = df[:,selected_columns]
@@ -19,7 +19,7 @@ function get_abalone_data()
 end
 
 function get_comp_hard_data()
-    df = CSV.read("data/comp_hard/machine.data", header = false, DataFrame)
+    df = CSV.read("../data/comp_hard/machine.data", header = false, DataFrame)
     df_names = ["Vendor_Name", "Model_Name", "MYCT", "MMIN", "MMAX", "CACH", "CHMIN", "CHMAX", "PRP", "ERP"]
     rename!(df, Symbol.(df_names))
 
@@ -31,7 +31,7 @@ function get_comp_hard_data()
 end
 
 function get_concrete_data()
-    df = CSV.read("data/concrete/concrete_data.csv", DataFrame)
+    df = CSV.read("../data/concrete/concrete_data.csv", DataFrame)
     selected_columns = setdiff(names(df), ["concrete_compressive_strength"])
 
     X = df[:,selected_columns]
@@ -50,6 +50,18 @@ end
 
 function add_intercept(X)
     return hcat(ones(Int, size(X, 1)), X)
+end
+
+function normalize_data(X_train, X_test)
+    # Calculate mean and standard deviation from training data
+    mean_vals = mean(X_train, dims=1)
+    std_vals = std(X_train, dims=1)
+
+    # Normalize training data
+    X_train_norm = (X_train .-mean_vals) ./ std_vals;
+    X_test_norm = (X_test .-mean_vals) ./ std_vals;
+    
+    return X_train_norm, X_test_norm
 end
 
 # function normalize_data(X_train, X_test)
