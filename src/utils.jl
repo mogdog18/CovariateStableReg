@@ -99,6 +99,26 @@ function generate_synthetic_data(num_samples)
     return (DataFrame(Feature1 = X_train), y_train), (DataFrame(Feature1 = X_test), y_test)
 end
 
+
+
+function generate_synthetic_data_2(num_samples, shiftfactor = 0.8)
+    Random.seed!(123)  
+    
+    f(x) = -x[:, 1].^2 .+ x[:, 2] .- 1
+    
+    normal_dist(mu, std, num_samples) = mu .+ std * randn(num_samples)
+
+    X_train, X_test = randn(num_samples, 2), randn(num_samples, 2) .+ shiftfactor
+    error_train, error_test = normal_dist(0, 1/4, num_samples), normal_dist(0, 1/4, num_samples) # ε with density φ(ε;0,(1/4)^2)
+
+    y_train = f(X_train) + error_train
+    y_test = f(X_test) + error_test
+
+    return (DataFrame(Feature1 = X_train[:, 1], Feature2 = X_train[:, 2]), y_train),
+           (DataFrame(Feature1 = X_test[:, 1], Feature2 = X_test[:, 2]), y_test)
+end
+
+
 # function normalize_data(X_train, X_test)
 #     # Calculate mean and standard deviation from training data
 #     mean_vals = mean(X_train, dims=1)
