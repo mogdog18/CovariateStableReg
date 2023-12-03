@@ -84,40 +84,65 @@ end
 
 
 # -------- function to generate data  ----------
-function generate_synthetic_data(num_samples)
 
-    Random.seed!(123)  # Setting seed for reproducibility
-    f(x) = sinc(x)
-    normal_dist(mu, std, num_samples) = mu .+ std * randn(num_samples)
+function normal_distribution(mu, std, num_samples, seed = 1)
+    Random.seed!(seed)
+    return mu .+ std * randn(num_samples)
+end 
 
-    X_train, X_test = normal_dist(1, 1/2, num_samples),  normal_dist(2, 1/4, num_samples)
-    error_train, error_test = normal_dist(0, 1/4, num_samples), normal_dist(0, 1/4, num_samples) # ε with density φ(ε;0,(1/4)^2)
+function generate_synthetic_data(num_samples, type = "1", seed = 1)
+    
+    if type == "1"
+        f_1(x) = sinc(x)
 
-    y_train = f.(X_train) + error_train
-    y_test = f.(X_test) + error_test
+        X_train, X_test = normal_distribution(1, (1/2), num_samples, seed),  normal_distribution(2, (1/4), num_samples, seed)
+        error_train, error_test = normal_distribution(0, (1/4), num_samples, seed + 1), normal_distribution(0, (1/4), num_samples, seed + 2)
 
+        y_train = f_1.(X_train) + error_train
+        y_test = f_1.(X_test) + error_test
+
+    elseif type == "2"
+        f_2(x) = -x + x^3 
+
+        X_train, X_test = normal_distribution(0.5, 0.5, num_samples, seed), normal_distribution(0, 0.3, num_samples, seed)
+        error_train, error_test = normal_distribution(0, 0.3, num_samples, seed + 1), normal_distribution(0, 0.3, num_samples, seed + 2)
+
+        y_train = f_2.(X_train) + error_train
+        y_test = f_2.(X_test) + error_test
+    end
+    
     return (DataFrame(Feature1 = X_train), y_train), (DataFrame(Feature1 = X_test), y_test)
 end
 
+function plot_synthetic(X, y, X_shifted, y_shifted, type = "1")
+    if type == "1"
+        f_1(x) = sinc(x)
 
+        plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε")
+        scatter!(Matrix(X_shifted), y_shifted, label="Test Samples")
 
-function generate_synthetic_data_2(num_samples, shiftfactor = 0.8)
-    Random.seed!(123)  
-    
-    f(x) = -x[:, 1].^2 .+ x[:, 2] .- 1
-    
-    normal_dist(mu, std, num_samples) = mu .+ std * randn(num_samples)
+        x_values = range(-0.5, stop=2, length=500)
+        plot!(x_values, f_1.(x_values), label="sinc(x)", linewidth=2)
 
-    X_train, X_test = randn(num_samples, 2), randn(num_samples, 2) .+ shiftfactor
-    error_train, error_test = normal_dist(0, 1/4, num_samples), normal_dist(0, 1/4, num_samples) # ε with density φ(ε;0,(1/4)^2)
+        savefig(plot_obj, "../data/imgs/covariate_shift_synthetic_data_1.png")
 
-    y_train = f(X_train) + error_train
-    y_test = f(X_test) + error_test
+        display(plot_obj)
 
-    return (DataFrame(Feature1 = X_train[:, 1], Feature2 = X_train[:, 2]), y_train),
-           (DataFrame(Feature1 = X_test[:, 1], Feature2 = X_test[:, 2]), y_test)
+    else 
+        f_2(x) = -x + x^3 
+
+        plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε")
+        scatter!(Matrix(X_shifted), y_shifted, label="Test Samples")
+
+        x_values = range(-1, stop=2, length=500)
+        plot!(x_values, f_2.(x_values), label="-x + x^3", linewidth=2)
+
+        savefig(plot_obj, "../data/imgs/covariate_shift_synthetic_data_2.png")
+
+        display(plot_obj)
+    end 
+
 end
-
 
 # function normalize_data(X_train, X_test)
 #     # Calculate mean and standard deviation from training data
