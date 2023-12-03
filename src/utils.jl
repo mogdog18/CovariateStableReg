@@ -13,7 +13,7 @@ function get_abalone_data()
     selected_columns = setdiff(names(df), ["rings", "sex"])
 
     X = df[:,selected_columns]
-    y = CSV.read("data/abalone/abalone_original.csv", DataFrame)[!,"rings"];
+    y = CSV.read("../data/abalone/abalone_original.csv", DataFrame)[!,"rings"];
     return X, y
 
 end
@@ -46,6 +46,24 @@ function mse(y_true, y_pred)
 end
 
 
+
+# ------- plotting fucntions ---------
+function plot_covariate_shit(X_train, X_test_shift)
+    plot_list = []
+    num_cols = 2
+
+    for (i, col) in enumerate(names(X_train))
+        # Create density plots
+        p = histogram(X_train[:, col], label="X_train", alpha=0.7, nbins=20,title=string("Column: ", col))
+        histogram!(X_test_shift[:, col], label="X_test", alpha=0.7, nbins=20)
+        
+        push!(plot_list, p)
+    end
+
+    plot(plot_list..., layout=(length(plot_list) ÷ num_cols + 1, num_cols), legend=true, size=(800, 800))
+
+end
+
 # # ------ helper functions for preprocess data -------
 
 function add_intercept(X)
@@ -62,6 +80,23 @@ function normalize_data(X_train, X_test)
     X_test_norm = (X_test .-mean_vals) ./ std_vals;
     
     return X_train_norm, X_test_norm
+end
+
+
+# -------- function to generate data  ----------
+function generate_synthetic_data(num_samples)
+
+    Random.seed!(123)  # Setting seed for reproducibility
+    f(x) = sinc(x)
+    normal_dist(mu, std, num_samples) = mu .+ std * randn(num_samples)
+
+    X_train, X_test = normal_dist(1, 1/2, num_samples),  normal_dist(2, 1/4, num_samples)
+    error_train, error_test = normal_dist(0, 1/4, num_samples), normal_dist(0, 1/4, num_samples) # ε with density φ(ε;0,(1/4)^2)
+
+    y_train = f.(X_train) + error_train
+    y_test = f.(X_test) + error_test
+
+    return (DataFrame(Feature1 = X_train), y_train), (DataFrame(Feature1 = X_test), y_test)
 end
 
 # function normalize_data(X_train, X_test)
