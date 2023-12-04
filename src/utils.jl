@@ -1,5 +1,7 @@
 using CSV, DataFrames, Statistics, Random, Plots, JuMP, Gurobi
 
+using MultivariateStats
+
 using ScikitLearn
 @sk_import linear_model: LogisticRegression
 @sk_import metrics:accuracy_score;
@@ -72,8 +74,8 @@ end
 
 function normalize_data(X_train, X_test)
     # Calculate mean and standard deviation from training data
-    mean_vals = mean(X_train, dims=1)
-    std_vals = std(X_train, dims=1)
+    mean_vals = Statistics.mean(X_train, dims=1)
+    std_vals = Statistics.std(X_train, dims=1)
 
     # Normalize training data
     X_train_norm = (X_train .-mean_vals) ./ std_vals;
@@ -190,15 +192,15 @@ function LassoRegression(X, y, lambda, weight = "nothing")
         @constraint(model, w[i] >= -beta[i])
     end
 
-    if weight !== "nothing"
-        for i in 1:n
-            @constraint(model, u[i] >= weight[i] * (y[i] - sum(X[i, :] .* beta)))
-            @constraint(model, u[i] >= - weight[i] * (y[i] - sum(X[i, :] .* beta)))
-        end
-    else
+    if weight == "nothing"
         for i in 1:n
             @constraint(model, u[i] >= (y[i] - sum(X[i, :] .* beta)))
             @constraint(model, u[i] >=  - (y[i] - sum(X[i, :] .* beta)))
+        end
+    else
+        for i in 1:n
+            @constraint(model, u[i] >= weight[i] * (y[i] - sum(X[i, :] .* beta)))
+            @constraint(model, u[i] >= - weight[i] * (y[i] - sum(X[i, :] .* beta)))
         end
     end
 
@@ -206,6 +208,22 @@ function LassoRegression(X, y, lambda, weight = "nothing")
 
     return value.(beta)
 end
+
+
+
+# ------- PCA ---------
+function perform_pca(dataset)
+    # train a PCA model,
+    pca = fit(PCA, dataset'; maxoutdim=size(dataset, 2))
+    # apply PCA model to data set
+    pca_result = transpose(MultivariateStats.transform(pca, dataset'))
+    return pca_result
+end
+
+
+
+
+
 
 
 
@@ -319,22 +337,12 @@ end
 
 
 # # ------- Metrics -----------------
-function calculate_percentage_improvement(opt_scores, rand_scores)
-    if length(opt_scores) != length(rand_scores)
+function calculate_percentage_improvement(scores_after, scores_before)
+    if length(scores_after) != length(scores_before)
         error("Old scores and new scores must have the same length.")
     end
     
-    percentage_improvements = []
-
-    for i in 1:length(opt_scores)
-        opt_score = opt_scores[i]
-        rand_score = rand_scores[i]
-
-        percentage_improvement = ((rand_score - opt_score) / rand_score) * 100
-        push!(percentage_improvements, percentage_improvement)
-    end
-
-    return mean(percentage_improvements)
+    return mean((scores_before .- scores_after) ./scores_before) * 100
 end
 
 function check_accuracy(y_pred, y_true)
