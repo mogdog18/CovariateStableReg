@@ -1,4 +1,4 @@
-using CSV, DataFrames, Statistics, Random, Plots, JuMP, Gurobi
+using CSV, DataFrames, Statistics, Random, Plots, JuMP, Gurobi, StatsBase
 
 using MultivariateStats
 
@@ -41,7 +41,41 @@ function get_concrete_data()
     return X, y
 end
 
+function get_forestfire_data()
+    df = CSV.read("../data/forest_fire/forestfires.csv", DataFrame)
+    X = select(df, Not(["month", "day", "area"]))
 
+    # one hot encode months
+    month_encoded = indicatormat(Matrix(select(df, "month")))
+    month_encoded = transpose(month_encoded)
+    month_df = DataFrame(ones(size(month_encoded)), :auto)
+
+    for i in 1:size(month_encoded, 2)
+        column_name = "x$i"
+        month_df[!, column_name] = month_encoded[:, i]
+    end
+    new_column_names = Symbol.("month_" .* string.(1:12))
+    rename!(month_df, new_column_names)
+
+    # one hot encode days
+    day_encoded = indicatormat(Matrix(select(df, "day")))
+    day_encoded = transpose(day_encoded)
+    day_df = DataFrame(ones(size(day_encoded)), :auto)
+    for i in 1:size(day_encoded, 2)
+        column_name = "x$i"
+        day_df[!, column_name] = day_encoded[:, i]
+    end
+    new_column_names = Symbol.("day_" .* string.(1:7))
+    rename!(day_df, new_column_names)
+
+    # combine one hot encoding with original dataset
+    X = hcat(X, day_df, month_df)
+
+    # get y values
+    y = CSV.read("../data/forest_fire/forestfires.csv", DataFrame)[!,"area"];
+    return X, y
+
+end
 # --------- Metrics -------------
 function mse(y_true, y_pred)
     return sum((y_true .- y_pred).^2) / length(y_true)
