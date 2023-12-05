@@ -22,3 +22,7 @@ HOW TO GENERATE COVARIATE SHIFTS
 
 
 - https://proceedings.mlr.press/v108/li20b/li20b.pdf (synthetic data Toy Dataset Regression)
+
+
+
+https://ruoyunlin.github.io/articles/2021-08/covariate_shift (covariate shift code)
