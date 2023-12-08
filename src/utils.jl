@@ -90,8 +90,8 @@ function plot_covariate_shit(X_train, X_test_shift)
 
     for (i, col) in enumerate(names(X_train))
         # Create density plots
-        p = histogram(X_train[:, col], label="X_train", alpha=0.7, nbins=20,title=string("Column: ", col))
-        histogram!(X_test_shift[:, col], label="X_test", alpha=0.7, nbins=20)
+        p = histogram(X_train[:, col], label="X_train", alpha=0.7, nbins=20, title=string("Column: ", col), color="#a3a3a3")
+        histogram!(X_test_shift[:, col], label="X_test", alpha=0.7, nbins=20, color="#666666")
         
         push!(plot_list, p)
     end
@@ -154,11 +154,11 @@ function plot_synthetic(X, y, X_shifted, y_shifted, type = "1")
     if type == "1"
         f_1(x) = sinc(x)
 
-        plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε")
-        scatter!(Matrix(X_shifted), y_shifted, label="Test Samples")
+        plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε", color="#a3a3a3")
+        scatter!(Matrix(X_shifted), y_shifted, label="Test Samples", color="#666666")
 
         x_values = range(-0.5, stop=2, length=500)
-        plot!(x_values, f_1.(x_values), label="sinc(x)", linewidth=2)
+        plot!(x_values, f_1.(x_values), label="sinc(x)", linewidth=6, color="#cbd0f1")
 
         savefig(plot_obj, "../data/imgs/covariate_shift_synthetic_data_1.png")
 
@@ -167,11 +167,11 @@ function plot_synthetic(X, y, X_shifted, y_shifted, type = "1")
     else 
         f_2(x) = -x + x^3 
 
-        plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε")
-        scatter!(Matrix(X_shifted), y_shifted, label="Test Samples")
+        plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε", color="#a3a3a3")
+        scatter!(Matrix(X_shifted), y_shifted, label="Test Samples", color="#666666")
 
         x_values = range(-1, stop=2, length=500)
-        plot!(x_values, f_2.(x_values), label="-x + x^3", linewidth=2)
+        plot!(x_values, f_2.(x_values), label="-x + x^3", linewidth=6, color="#cbd0f1")
 
         savefig(plot_obj, "../data/imgs/covariate_shift_synthetic_data_2.png")
 
