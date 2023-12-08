@@ -198,7 +198,7 @@ end
 function get_weights(X_train, X_test, print_results = false)
     X_combined = vcat(X_train, X_test)
     y_combined = vcat(zeros(size(X_train)[1]),ones(size(X_test)[1]))
-    lr = fit!(LogisticRegression(max_iter = 2000, random_state = 1), Matrix(X_combined), y_combined)
+    lr = ScikitLearn.fit!(LogisticRegression(max_iter = 2000, random_state = 1), Matrix(X_combined), y_combined)
     if print_results
         y_pred_combined = lr.predict(Matrix(X_combined))
         check_accuracy(y_pred_combined, y_combined)
@@ -248,7 +248,7 @@ end
 # ------- PCA ---------
 function perform_pca(dataset)
     # train a PCA model,
-    pca = fit(PCA, dataset'; maxoutdim=size(dataset, 2))
+    pca = StatsBase.fit(PCA, dataset'; maxoutdim=size(dataset, 2))
     # apply PCA model to data set
     pca_result = transpose(MultivariateStats.transform(pca, dataset'))
     return pca_result
@@ -256,9 +256,13 @@ end
 
 
 
-
-
-
+function calculate_avg_betas(rand_betas, rand_weights_betas, opt_betas, opt_weights_betas)
+    mean_random_betas = mean(rand_betas, dims = 1)[1]
+    mean_random_weights_betas = mean(rand_weights_betas, dims = 1)[1]
+    mean_opt_betas = mean(opt_betas, dims = 1)[1]
+    mean_opt_weights_betas = mean(opt_weights_betas, dims = 1)[1]
+    return mean_random_betas, mean_random_weights_betas, mean_opt_betas, mean_opt_weights_betas
+end
 
 
 # function generate_covariate_shift(X_test)
