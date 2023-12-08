@@ -207,6 +207,21 @@ function plot_synthetic_slopes(mean_opt_weights_betas, mean_random_weights_betas
     display(plot_obj)
 end
 
+function write_mse_results(file_name, improv_opt_rand_no_weight, improv_opt_rand_with_weight, improv_rand, improv_opt)
+    file = open(file_name, "w")
+
+    # Write the MSE results to the file in table form
+    println(file, "Comparison\tImprovement (%)")
+    println(file, "------------------------------------")
+    println(file, "opt vs. rand (no weight)\t", improv_opt_rand_no_weight)
+    println(file, "opt vs. rand (with weight)\t", improv_opt_rand_with_weight)
+    println(file, "rand with and without weights\t", improv_rand)
+    println(file, "opt with and without weights\t", improv_opt)
+
+    # Close the file
+    close(file)
+end
+
 # function normalize_data(X_train, X_test)
 #     # Calculate mean and standard deviation from training data
 #     mean_vals = mean(X_train, dims=1)
