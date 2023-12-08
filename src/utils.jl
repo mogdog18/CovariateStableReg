@@ -180,6 +180,33 @@ function plot_synthetic(X, y, X_shifted, y_shifted, type = "1")
 
 end
 
+function plot_synthetic_slopes(mean_opt_weights_betas, mean_random_weights_betas, mean_random_betas, mean_opt_betas, func_type)
+    if func_type == "1"
+        f(x) = sinc(x)
+    else
+        f(x) =  -x + x^3
+    end
+
+    f_ow(x) =  mean_opt_weights_betas[1] +  mean_opt_weights_betas[2]* x
+    f_rw(x) =  mean_random_weights_betas[1] +  mean_random_weights_betas[2]* x
+    f_r(x) =  mean_random_betas[1] +  mean_random_betas[2]* x
+    f_o(x) =  mean_opt_betas[1] +  mean_opt_betas[2]* x
+
+    plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε", color="#a3a3a3")
+    scatter!(Matrix(X_shifted), y_shifted, label="Test Samples", color="#666666")
+
+    x_values = range(-0.5, stop=2, length=500)
+    plot!(x_values, f.(x_values), label="sinc(x)", linewidth=3, size=(800, 600), color="#cbd0f1")
+    plot!(x_values, f_ow.(x_values), label="opt with weights", linewidth=3, size=(800, 600), color="#f02937")
+    plot!(x_values, f_o.(x_values), label="opt no weights", linewidth=3, size=(800, 600), color="#6b1218")
+    plot!(x_values, f_rw.(x_values), label="rand with weights", linewidth=3, size=(800, 600), color="#b6d7a8")
+    plot!(x_values, f_r.(x_values), label="rand no weights", linewidth=3, size=(800, 600), color="#3e6e29")
+
+    savefig(plot_obj, "../data/imgs/covariate_shift_synthetic_data_$(func_type).png")
+
+    display(plot_obj)
+end
+
 # function normalize_data(X_train, X_test)
 #     # Calculate mean and standard deviation from training data
 #     mean_vals = mean(X_train, dims=1)
