@@ -415,6 +415,32 @@ end
 #     return value.(beta)
 # end
 
+# --------- helper functions to save data -------------
+function save_betas(rand_betas, rand_weights_betas, opt_betas, opt_weights_betas, folder)
+
+    rand_betas_df = DataFrame(rand_beta = rand_betas)
+    rand_weights_betas_df = DataFrame(rand_w_weights_beta = rand_weights_betas)
+    opt_betas_df = DataFrame(opt_beta = opt_betas)
+    opt_weights_betas_df = DataFrame(opt_w_weights = opt_weights_betas)
+    
+    # Concatenate all DataFrames into a single DataFrame
+    all_betas_df = hcat(rand_betas_df, rand_weights_betas_df, opt_betas_df, opt_weights_betas_df)
+    
+    CSV.write("../results/$(folder)/betas.csv", all_betas_df)
+end
+
+function save_tes_mse_scores(random_mse_test_scores, random_weights_mse_test_scores, optim_mse_test_scores, optim_weights_mse_test_scores, folder)
+    rand_mse_df = DataFrame(rand_mse = random_mse_test_scores)
+    rand_weights_mse_df =  DataFrame(rand_w_weights_mse = random_weights_mse_test_scores)
+    opt_mse_df =  DataFrame(opt_mse = optim_mse_test_scores)
+    opt_weights_mse_df =  DataFrame(opt_w_weights_mse = optim_weights_mse_test_scores)
+
+    all_mse_df = hcat(rand_mse_df, rand_weights_mse_df, opt_mse_df, opt_weights_mse_df)
+
+    CSV.write("../results/$(folder)/test_mse_scores.csv", all_mse_df)
+
+end 
+
 
 # # ------- Metrics -----------------
 function calculate_percentage_improvement(scores_after, scores_before)
