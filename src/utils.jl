@@ -1,5 +1,4 @@
 using CSV, DataFrames, Statistics, Random, Plots, JuMP, Gurobi, StatsBase
-
 using MultivariateStats
 
 using ScikitLearn
@@ -76,12 +75,6 @@ function get_forestfire_data()
     return X, y
 
 end
-# --------- Metrics -------------
-function mse(y_true, y_pred)
-    return sum((y_true .- y_pred).^2) / length(y_true)
-end
-
-
 
 # ------- plotting fucntions ---------
 function plot_covariate_shit(X_train, X_test_shift)
@@ -181,61 +174,50 @@ function plot_synthetic(X, y, X_shifted, y_shifted, type = "1")
 end
 
 function plot_synthetic_slopes(mean_opt_weights_betas, mean_random_weights_betas, mean_random_betas, mean_opt_betas, func_type)
-    if func_type == "1"
-        f(x) = sinc(x)
-    else
-        f(x) =  -x + x^3
-    end
-
     f_ow(x) =  mean_opt_weights_betas[1] +  mean_opt_weights_betas[2]* x
     f_rw(x) =  mean_random_weights_betas[1] +  mean_random_weights_betas[2]* x
     f_r(x) =  mean_random_betas[1] +  mean_random_betas[2]* x
     f_o(x) =  mean_opt_betas[1] +  mean_opt_betas[2]* x
+    
+    if func_type == "1"
+        f_1(x) = sinc(x)
+    
+        plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε", color="#a3a3a3")
+        scatter!(Matrix(X_shifted), y_shifted, label="Test Samples", color="#666666")
+    
+        x_values = range(-0.5, stop=2, length=500)
+        plot!(x_values, f_1.(x_values), label="sinc(x)", linewidth=3, size=(800, 600), color="#cbd0f1")
+        plot!(x_values, f_ow.(x_values), label="opt with weights", linewidth=3, size=(800, 600), color="#f02937")
+        plot!(x_values, f_o.(x_values), label="opt no weights", linewidth=3, size=(800, 600), color="#6b1218")
+        plot!(x_values, f_rw.(x_values), label="rand with weights", linewidth=3, size=(800, 600), color="#b6d7a8")
+        plot!(x_values, f_r.(x_values), label="rand no weights", linewidth=3, size=(800, 600), color="#3e6e29")
+    
+        savefig(plot_obj, "../results/synthetic1/covariate_shift.png")
+    
+        display(plot_obj)
+    else
+        f_2(x) = -x + x^3
+       
+        plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε", color="#a3a3a3")
+        scatter!(Matrix(X_shifted), y_shifted, label="Test Samples", color="#666666")
+    
+        x_values = range(-1, stop=2, length=500)
+        plot!(x_values, f_2.(x_values), label="-x + x^3", linewidth=3, size=(800, 600), color="#cbd0f1")
+        plot!(x_values, f_ow.(x_values), label="opt with weights", linewidth=3, size=(800, 600), color="#f02937")
+        plot!(x_values, f_o.(x_values), label="opt no weights", linewidth=3, size=(800, 600), color="#6b1218")
+        plot!(x_values, f_rw.(x_values), label="rand with weights", linewidth=3, size=(800, 600), color="#b6d7a8")
+        plot!(x_values, f_r.(x_values), label="rand no weights", linewidth=3, size=(800, 600), color="#3e6e29")
+    
+        savefig(plot_obj,  "../results/synthetic2/covariate_shift.png")
+    
+        display(plot_obj)
+    end
 
-    plot_obj = scatter(Matrix(X_full), y_full, label="Training Samples", xlabel="x", ylabel="f(x) + ε", color="#a3a3a3")
-    scatter!(Matrix(X_shifted), y_shifted, label="Test Samples", color="#666666")
-
-    x_values = range(-0.5, stop=2, length=500)
-    plot!(x_values, f.(x_values), label="sinc(x)", linewidth=3, size=(800, 600), color="#cbd0f1")
-    plot!(x_values, f_ow.(x_values), label="opt with weights", linewidth=3, size=(800, 600), color="#f02937")
-    plot!(x_values, f_o.(x_values), label="opt no weights", linewidth=3, size=(800, 600), color="#6b1218")
-    plot!(x_values, f_rw.(x_values), label="rand with weights", linewidth=3, size=(800, 600), color="#b6d7a8")
-    plot!(x_values, f_r.(x_values), label="rand no weights", linewidth=3, size=(800, 600), color="#3e6e29")
-
-    savefig(plot_obj, "../data/imgs/covariate_shift_synthetic_data_$(func_type).png")
-
-    display(plot_obj)
+ 
 end
 
-function write_mse_results(file_name, improv_opt_rand_no_weight, improv_opt_rand_with_weight, improv_rand, improv_opt)
-    file = open(file_name, "w")
 
-    # Write the MSE results to the file in table form
-    println(file, "Comparison\tImprovement (%)")
-    println(file, "------------------------------------")
-    println(file, "opt vs. rand (no weight)\t", improv_opt_rand_no_weight)
-    println(file, "opt vs. rand (with weight)\t", improv_opt_rand_with_weight)
-    println(file, "rand with and without weights\t", improv_rand)
-    println(file, "opt with and without weights\t", improv_opt)
-
-    # Close the file
-    close(file)
-end
-
-# function normalize_data(X_train, X_test)
-#     # Calculate mean and standard deviation from training data
-#     mean_vals = mean(X_train, dims=1)
-#     std_vals = std(X_train, dims=1)
-
-#     # Normalize training data
-#     X_train_norm = (X_train .-mean_vals) ./ std_vals;
-#     X_test_norm = (X_test .-mean_vals) ./ std_vals;
-
-#     return X_train_norm, X_test_norm
-# end
-
-
-# # ------- helper functions for covariate shift data -----------
+# ------- helper functions for covariate shift data -----------
 
 function get_weights(X_train, X_test, print_results = false)
     X_combined = vcat(X_train, X_test)
@@ -297,7 +279,6 @@ function perform_pca(dataset)
 end
 
 
-
 function calculate_avg_betas(rand_betas, rand_weights_betas, opt_betas, opt_weights_betas)
     mean_random_betas = mean(rand_betas, dims = 1)[1]
     mean_random_weights_betas = mean(rand_weights_betas, dims = 1)[1]
@@ -306,114 +287,6 @@ function calculate_avg_betas(rand_betas, rand_weights_betas, opt_betas, opt_weig
     return mean_random_betas, mean_random_weights_betas, mean_opt_betas, mean_opt_weights_betas
 end
 
-
-# function generate_covariate_shift(X_test)
-#     #set a seed for distribution
-#     Random.seed!(123)
-
-#     col_means = mean(Matrix(X_test), dims=1)
-#     std_dev = 0.1
-
-#     random_values = zeros(size(X_test))
-#     for col_index in 1:size(X_test, 2)
-#         col_mean = col_means[col_index]
-#         col_shift = rand(Normal(col_mean * 0.5 , std_dev), (size(X_test, 1), 1))
-#         random_values[:, col_index] = col_shift
-#     end
-
-#     X_test_shift = Matrix(X_test) .+ random_values;
-#     df_X_test_shift = DataFrame(X_test_shift,Symbol.(names(X_test)))
-#     return df_X_test_shift
-# end
-
-# function get_weights(X_train, X_test, print_results = false)
-#     X_combined = vcat(X_train, X_test)
-#     y_combined = vcat(zeros(size(X_train)[1]),ones(size(X_test)[1]))
-#     lr = fit!(LogisticRegression(max_iter = 2000, random_state = 1), Matrix(X_combined), y_combined)
-#     if print_results
-#         y_pred_combined = lr.predict(Matrix(X_combined))
-#         check_accuracy(y_pred_combined, y_combined)
-#     end
-#     y_pred_combined_prob = lr.predict_proba(Matrix(X_train))
-#     weights_shift = y_pred_combined_prob[:, 2] ./ y_pred_combined_prob[:, 1]
-#     return weights_shift
-# end
-
-
-# # ------ helper functions for stable regression -------- 
-# function optimized_split(X, y, lambda, train_fraction, weights = nothing)
-#     # add column of ones
-#     X = hcat(ones(Int, size(X, 1)), X)
-
-#     #parameters
-#     n, p = size(X)
-#     k = n * train_fraction
-
-#     model = Model(Gurobi.Optimizer)
-#     set_optimizer_attribute(model, "OutputFlag", 0)
-
-#     @variable(model, theta)
-#     @variable(model, u[1:n] >= 0)
-#     @variable(model, beta[1:p])
-#     @variable(model, w[1:p])
-
-#     @objective(model, Min, k * theta + sum(u) + lambda * sum(w))
-
-#     for i in 1:p
-#         @constraint(model, w[i] >= beta[i])
-#         @constraint(model, w[i] >= -beta[i])
-#     end 
-
-#     for i in 1:n
-#         if weights == nothing
-#             @constraint(model, theta + u[i] >= y[i] - sum(X[i, :].*beta))
-#             @constraint(model, theta + u[i] >= -(y[i] - sum(X[i, :].*beta)))
-#         else 
-#             @constraint(model, theta + u[i] >=  weights[i] * (y[i] - sum(X[i, :].*beta)))
-#             @constraint(model, theta + u[i] >= - weights[i] * (y[i] - sum(X[i, :].*beta)))
-#         end 
-#     end
-    
-#     optimize!(model)
-
-#     return value(theta), value.(u), value.(beta), value.(w)
-# end
-
-# function LasssoRegression(X, y, lambda, weight = nothing)
-#     # add column of ones
-#     X = hcat(ones(Int, size(X, 1)), X)
-#     n, p = size(X)
-
-#     model = Model(Gurobi.Optimizer)
-#     set_optimizer_attribute(model, "OutputFlag", 0)
-
-#     @variable(model, u[1:n])
-#     @variable(model, beta[1:p])
-#     @variable(model, w[1:p])
-
-#     @objective(model, Min, sum(u) + lambda * sum(w))
-
-#     for i in 1:p
-#         @constraint(model, w[i] >= beta[i])
-#         @constraint(model, w[i] >= -beta[i])
-#     end
-
-#     if weight !== nothing
-#         for i in 1:n
-#             @constraint(model, u[i] >= weight[i] * (y[i] - sum(X[i, :] .* beta)))
-#             @constraint(model, u[i] >= - weight[i] * (y[i] - sum(X[i, :] .* beta)))
-#         end
-#     else
-#         for i in 1:n
-#             @constraint(model, u[i] >= (y[i] - sum(X[i, :] .* beta)))
-#             @constraint(model, u[i] >=  - (y[i] - sum(X[i, :] .* beta)))
-#         end
-#     end
-
-#     optimize!(model)
-
-#     return value.(beta)
-# end
 
 # --------- helper functions to save data -------------
 function save_betas(rand_betas, rand_weights_betas, opt_betas, opt_weights_betas, folder)
@@ -441,6 +314,21 @@ function save_tes_mse_scores(random_mse_test_scores, random_weights_mse_test_sco
 
 end 
 
+function write_mse_results(file_name, improv_opt_rand_no_weight, improv_opt_rand_with_weight, improv_rand, improv_opt)
+    file = open(file_name, "w")
+
+    # Write the MSE results to the file in table form
+    println(file, "Comparison\tImprovement (%)")
+    println(file, "------------------------------------")
+    println(file, "opt vs. rand (no weight)\t", improv_opt_rand_no_weight)
+    println(file, "opt vs. rand (with weight)\t", improv_opt_rand_with_weight)
+    println(file, "rand with and without weights\t", improv_rand)
+    println(file, "opt with and without weights\t", improv_opt)
+
+    # Close the file
+    close(file)
+end
+
 
 # # ------- Metrics -----------------
 function calculate_percentage_improvement(scores_after, scores_before)
@@ -461,3 +349,8 @@ function check_accuracy(y_pred, y_true)
     println("recall: ", round(recall, digits=10))
     return 
 end
+
+function mse(y_true, y_pred)
+    return sum((y_true .- y_pred).^2) / length(y_true)
+end
+
