@@ -66,6 +66,7 @@ function perform_covariate_shift(rc::RegressionClass, X_full_norm)
     X_test_reshaped = X_test_reshaped[idx_test, :]
     y_train = y_train[idx_train]
     y_test = y_test[idx_test]
+  
     
     return (X_train_reshaped, y_train), (X_test_reshaped, y_test)
 end
@@ -294,7 +295,6 @@ function repeat_four_methods(rc::RegressionClass)
         push!(optim_mse_test_scores, optim_mse_test_score)
         push!(opt_betas, opt_beta)
 
-        
         # println("Starting Optimization with covariate weights")
         opt_weights_beta, optim_weights_mse_test_score = get_optimized_split_test_score(rc, X_train_norm, y_train, X_test_norm, y_test, weights, false)
         push!(optim_weights_mse_test_scores, optim_weights_mse_test_score)
