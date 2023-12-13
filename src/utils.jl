@@ -187,10 +187,10 @@ function plot_synthetic_slopes(mean_opt_weights_betas, mean_random_weights_betas
     
         x_values = range(-0.5, stop=2, length=500)
         plot!(x_values, f_1.(x_values), label="sinc(x)", linewidth=3, size=(800, 600), color="#cbd0f1")
-        plot!(x_values, f_ow.(x_values), label="opt with weights", linewidth=3, size=(800, 600), color="#f02937")
-        plot!(x_values, f_o.(x_values), label="opt no weights", linewidth=3, size=(800, 600), color="#6b1218")
-        plot!(x_values, f_rw.(x_values), label="rand with weights", linewidth=3, size=(800, 600), color="#b6d7a8")
-        plot!(x_values, f_r.(x_values), label="rand no weights", linewidth=3, size=(800, 600), color="#3e6e29")
+        plot!(x_values, f_ow.(x_values), label="SR with weights", linewidth=3, size=(800, 600), color="#f02937")
+        plot!(x_values, f_o.(x_values), label="SR no weights", linewidth=3, size=(800, 600), color="#6b1218")
+        plot!(x_values, f_rw.(x_values), label="rand. with weights", linewidth=3, size=(800, 600), color="#b6d7a8")
+        plot!(x_values, f_r.(x_values), label="rand. no weights", linewidth=3, size=(800, 600), color="#3e6e29")
     
         savefig(plot_obj, "../results/synthetic1/covariate_shift.png")
     
@@ -203,10 +203,10 @@ function plot_synthetic_slopes(mean_opt_weights_betas, mean_random_weights_betas
     
         x_values = range(-1, stop=2, length=500)
         plot!(x_values, f_2.(x_values), label="-x + x^3", linewidth=3, size=(800, 600), color="#cbd0f1")
-        plot!(x_values, f_ow.(x_values), label="opt with weights", linewidth=3, size=(800, 600), color="#f02937")
-        plot!(x_values, f_o.(x_values), label="opt no weights", linewidth=3, size=(800, 600), color="#6b1218")
-        plot!(x_values, f_rw.(x_values), label="rand with weights", linewidth=3, size=(800, 600), color="#b6d7a8")
-        plot!(x_values, f_r.(x_values), label="rand no weights", linewidth=3, size=(800, 600), color="#3e6e29")
+        plot!(x_values, f_ow.(x_values), label="SR with weights", linewidth=3, size=(800, 600), color="#f02937")
+        plot!(x_values, f_o.(x_values), label="SR no weights", linewidth=3, size=(800, 600), color="#6b1218")
+        plot!(x_values, f_rw.(x_values), label="rand. with weights", linewidth=3, size=(800, 600), color="#b6d7a8")
+        plot!(x_values, f_r.(x_values), label="rand. no weights", linewidth=3, size=(800, 600), color="#3e6e29")
     
         savefig(plot_obj,  "../results/synthetic2/covariate_shift.png")
     
